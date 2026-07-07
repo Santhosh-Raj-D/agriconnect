@@ -19,9 +19,30 @@ export async function placeOrder(cartItems: CartItem[]) {
     return { success: false, error: 'Your cart is empty.' };
   }
 
+  // Validate each line item and aggregate duplicate productIds. Without this a
+  // negative/zero/NaN quantity would produce a negative or corrupt order total,
+  // and duplicate productIds would break the availability check below.
+  const quantityByProduct = new Map<string, number>();
+  for (const item of cartItems) {
+    if (
+      !item ||
+      typeof item.productId !== 'string' ||
+      item.productId.length === 0 ||
+      typeof item.quantity !== 'number' ||
+      !Number.isFinite(item.quantity) ||
+      item.quantity <= 0
+    ) {
+      return { success: false, error: 'Invalid item or quantity in your cart.' };
+    }
+    quantityByProduct.set(
+      item.productId,
+      (quantityByProduct.get(item.productId) || 0) + item.quantity,
+    );
+  }
+
   try {
-    // Look up products to verify price and stock
-    const productIds = cartItems.map((item) => item.productId);
+    // Look up products to verify they exist and are available.
+    const productIds = Array.from(quantityByProduct.keys());
     const products = await db.product.findMany({
       where: {
         id: { in: productIds },
@@ -29,7 +50,7 @@ export async function placeOrder(cartItems: CartItem[]) {
       },
     });
 
-    if (products.length !== cartItems.length) {
+    if (products.length !== productIds.length) {
       return {
         success: false,
         error: 'One or more products in your cart are no longer available.',
@@ -39,15 +60,15 @@ export async function placeOrder(cartItems: CartItem[]) {
     // Map products by ID for quick access
     const productMap = new Map(products.map((p) => [p.id, p]));
 
-    // Calculate total price
+    // Calculate total price from server-side prices and validated quantities.
     let totalPrice = 0;
-    const itemsData = cartItems.map((cartItem) => {
-      const p = productMap.get(cartItem.productId)!;
+    const itemsData = Array.from(quantityByProduct.entries()).map(([productId, quantity]) => {
+      const p = productMap.get(productId)!;
       const priceAtPurchase = p.price;
-      totalPrice += priceAtPurchase * cartItem.quantity;
+      totalPrice += priceAtPurchase * quantity;
       return {
-        productId: cartItem.productId,
-        quantity: cartItem.quantity,
+        productId,
+        quantity,
         priceAtPurchase,
         farmerId: p.farmerId,
       };

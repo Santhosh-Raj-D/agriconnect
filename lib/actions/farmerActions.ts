@@ -120,15 +120,27 @@ export async function deleteProduct(productId: string) {
   }
 }
 
+// A farmer may only move an order forward through fulfilment. Cancelling is a
+// buyer action, and PENDING is the initial state — allowing a farmer to set
+// either would let them overwrite/undo buyer or other-farmer state.
+const FARMER_ALLOWED_STATUSES = ['SHIPPED', 'DELIVERED'] as const;
+
 export async function updateOrderStatus(orderId: string, newStatus: 'PENDING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED') {
   const user = await getSessionUser();
   if (!user || user.role !== 'FARMER') {
     return { success: false, error: 'Unauthorized.' };
   }
 
+  // Whitelist the statuses a farmer is permitted to set.
+  if (!FARMER_ALLOWED_STATUSES.includes(newStatus as (typeof FARMER_ALLOWED_STATUSES)[number])) {
+    return { success: false, error: 'Farmers can only mark orders as SHIPPED or DELIVERED.' };
+  }
+
   try {
-    // In our simplified order structure, a farmer manages the status of the entire order
-    // containing their items.
+    // NOTE: The schema stores a single status on Order. When an order contains
+    // items from multiple farmers, this still updates the whole order (a known
+    // limitation, tracked as BUG-005 — full fix requires per-item fulfilment
+    // state). The whitelist above at least prevents destructive transitions.
     const order = await db.order.findUnique({
       where: { id: orderId },
       include: { items: true },
