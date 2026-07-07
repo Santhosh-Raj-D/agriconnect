@@ -12,19 +12,21 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/). Dates ar
 - **Review:** Completed Phase 1 (setup: clone, branch, install, build) and Phase 2
   (project understanding). Build succeeds with a placeholder `DATABASE_URL`.
 
-### 2026-07-08 — Fixes (pending build-verify + commit)
+### 2026-07-08 — Fixes (build verified)
 - **Security (SEC-002, Critical):** `lib/actions/authActions.ts` — server-side whitelist in
   `signup` rejecting any `role` other than `BUYER`/`FARMER`, preventing privilege escalation
-  to `ADMIN`.
+  to `ADMIN`. _Commit `f1548f3` (reinforced in `974b09e`)._
 - **Security (SEC-001, High):** `lib/auth.ts` — replaced SHA-256+static-salt hashing with
   built-in **scrypt** + per-user random salt; added timing-safe `verifyPassword` with
-  legacy-hash support; `login` transparently upgrades legacy hashes on success.
+  legacy-hash support; `login` transparently upgrades legacy hashes on success. _Commit `974b09e`._
 - **Bug (BUG-004, Medium):** `lib/actions/buyerActions.ts` — validate cart quantities
   (finite, > 0) and aggregate duplicate productIds; totals computed from server-side prices.
+  _Commit `a54df26`._
 - **Bug (BUG-005, Medium → mitigated):** `lib/actions/farmerActions.ts` — restrict farmer
   order-status changes to `SHIPPED`/`DELIVERED`, blocking destructive PENDING/CANCELLED sets.
+  _Commit `a54df26`._
 - **Hardening (INFO-001):** `lib/actions/authActions.ts` — email-format + min-password-length
-  validation and email normalization on signup/login.
+  validation and email normalization on signup/login. _Commit `974b09e`._
 
 ### Files modified
 - `lib/auth.ts`

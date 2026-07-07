@@ -24,7 +24,7 @@ Status values: `Open` · `Confirmed` · `In Progress` · `Fixed` · `Won't Fix`
   `verifyPassword` with **timing-safe** comparison that also verifies legacy SHA-256 hashes and
   reports `needsUpgrade`; `login` transparently re-hashes legacy users to scrypt on next
   successful login. Existing accounts keep working and are migrated automatically.
-- **Status:** **Fixed** (pending build-verify + commit) · **Commit:** _TBD_
+- **Status:** **Fixed** (build verified) · **Commit:** `974b09e`
 
 ## SEC-002 — Privilege escalation via signup `role`
 - **File:** `lib/actions/authActions.ts` (`signup`)
@@ -38,7 +38,7 @@ Status values: `Open` · `Confirmed` · `In Progress` · `Fixed` · `Won't Fix`
 - **Root cause:** Trusting client-supplied role without a server-side whitelist.
 - **Solution:** Added a server-side guard rejecting any role other than BUYER/FARMER
   before user creation.
-- **Status:** **Fixed** (pending build-verify + commit) · **Commit:** _TBD_
+- **Status:** **Fixed** (build verified) · **Commit:** `f1548f3` (reinforced in `974b09e`)
 
 ## SEC-003 — Middleware guards on cookie presence only (no validity / role)
 - **File:** `proxy.ts`
@@ -73,7 +73,7 @@ Status values: `Open` · `Confirmed` · `In Progress` · `Fixed` · `Won't Fix`
 - **Solution:** Added a validation loop rejecting any item whose `productId` is not a non-empty
   string or whose `quantity` is not a finite number > 0, and aggregated duplicate productIds
   into a `Map` so the availability check and totals are computed from unique products.
-- **Status:** **Fixed** (pending build-verify + commit) · **Commit:** _TBD_
+- **Status:** **Fixed** (build verified) · **Commit:** `a54df26`
 
 ## BUG-005 — Farmer can change status of an entire multi-farmer order
 - **File:** `lib/actions/farmerActions.ts` (`updateOrderStatus`)
@@ -89,7 +89,7 @@ Status values: `Open` · `Confirmed` · `In Progress` · `Fixed` · `Won't Fix`
   can no longer set `PENDING` or `CANCELLED`, removing the destructive/undo transitions. The
   underlying single-status-per-order limitation for multi-farmer orders is documented in-code
   and remains as future work (needs per-item fulfilment state).
-- **Status:** **Mitigated** (destructive transitions blocked; architectural fix deferred) · **Commit:** _TBD_
+- **Status:** **Mitigated** (destructive transitions blocked; architectural fix deferred) · **Commit:** `a54df26`
 
 ## INFO-001 — No input validation on signup/login
 - **File:** `lib/actions/authActions.ts`
@@ -99,4 +99,4 @@ Status values: `Open` · `Confirmed` · `In Progress` · `Fixed` · `Won't Fix`
   signup, and normalized email to lowercase/trimmed on both signup and login (prevents
   duplicate accounts and case-sensitive login failures). **Rate limiting is still not
   implemented** and remains recommended future work.
-- **Status:** **Partially fixed** (validation added; rate limiting deferred) · **Commit:** _TBD_
+- **Status:** **Partially fixed** (validation added; rate limiting deferred) · **Commit:** `974b09e`
