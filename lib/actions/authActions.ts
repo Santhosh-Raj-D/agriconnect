@@ -54,6 +54,13 @@ export async function signup(state: any, formData: FormData) {
     return { success: false, error: 'Required fields are missing.' };
   }
 
+  // Security: never trust a client-supplied role. Only self-registration as
+  // BUYER or FARMER is allowed; ADMIN (or any other value) is rejected so a
+  // crafted request cannot escalate privileges by submitting role=ADMIN.
+  if (role !== 'BUYER' && role !== 'FARMER') {
+    return { success: false, error: 'Invalid account type.' };
+  }
+
   try {
     const existingUser = await db.user.findUnique({
       where: { email },
