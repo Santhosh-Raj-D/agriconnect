@@ -39,10 +39,25 @@ Branch: `review/full-audit` · Started: 2026-07-08
 - Rate limiting on login/signup.
 - Input validation layer (e.g. Zod) shared across server actions.
 
+## Lint status (Phase 8)
+`npm run lint` reports **19 problems (12 errors, 7 warnings)** — all **pre-existing**; the
+review's fixes introduced none. Grouped:
+- `@typescript-eslint/no-explicit-any` (errors): `state: any` params in server actions
+  (`authActions.ts`, `farmerActions.ts`) and `as any` casts in `buyer/dashboard/page.tsx`.
+  Idiomatic-but-loose; fix by typing the action state (e.g. a shared `ActionState` type).
+- `no-unused-vars` (warnings): `toggleProductBlockStatus` import, `showProfileModal`,
+  `destroySession` catch `error`, several seed variables.
+- `no-require-imports` (errors): `prisma/seed.js` uses CommonJS `require()`.
+Recommend a separate `chore(lint)` PR — kept out of this security-focused PR to preserve a
+clean, reviewable diff.
+
 ## Files reviewed
-- [x] Architecture map (structure, schema, auth, middleware) — done for Phase 2.
-- [ ] lib/auth.ts (detailed) — pending Phase 4
-- [ ] lib/actions/authActions.ts (detailed) — pending Phase 4
-- [ ] proxy.ts (detailed) — pending Phase 4
-- [ ] lib/actions/{admin,buyer,farmer}Actions.ts — pending Phase 4
-- [ ] lib/db.ts — pending Phase 4
+- [x] Architecture map (structure, schema, auth, middleware) — Phase 2.
+- [x] lib/auth.ts — reviewed + fixed (SEC-001).
+- [x] lib/actions/authActions.ts — reviewed + fixed (SEC-002, INFO-001).
+- [x] proxy.ts — reviewed (SEC-003 informational; per-page checks confirmed).
+- [x] lib/actions/adminActions.ts — reviewed; authorization correct.
+- [x] lib/actions/buyerActions.ts — reviewed + fixed (BUG-004).
+- [x] lib/actions/farmerActions.ts — reviewed + fixed (BUG-005).
+- [x] app/{admin,buyer,farmer}/dashboard/page.tsx — reviewed; role checks present.
+- [x] lib/db.ts — reviewed; Prisma singleton correct (note: `log: ['query']` verbose).
