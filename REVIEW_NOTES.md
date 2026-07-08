@@ -38,6 +38,9 @@ Branch: `review/full-audit` · Started: 2026-07-08
 - CI (lint + build + tests) via GitHub Actions.
 - Rate limiting on login/signup.
 - Input validation layer (e.g. Zod) shared across server actions.
+- **Functional gap:** `toggleProductBlockStatus` server action exists but is not wired into
+  `AdminDashboardClient` (admins cannot block/unblock products from the UI). Surfaced while
+  removing the unused import during lint cleanup. Either wire it up or remove the dead action.
 
 ## Lint status (Phase 8)
 `npm run lint` reports **19 problems (12 errors, 7 warnings)** — all **pre-existing**; the
