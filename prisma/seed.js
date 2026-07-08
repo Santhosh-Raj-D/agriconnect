@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unused-vars */
+// CommonJS seed script executed directly by Node (`node prisma/seed.js`), so it
+// intentionally uses require() rather than ESM imports.
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const crypto = require('crypto');

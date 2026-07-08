@@ -5,12 +5,49 @@ import crypto from 'crypto';
 const COOKIE_NAME = 'agri_session';
 const SESSION_EXPIRY_DAYS = 7;
 
+const SCRYPT_KEYLEN = 64;
+
+// Hash a password using scrypt with a unique, random per-user salt.
+// Stored format: `scrypt$<saltHex>$<hashHex>`. scrypt is a slow, memory-hard
+// KDF built into Node's crypto module, so no external dependency is needed.
 export function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, SCRYPT_KEYLEN).toString('hex');
+  return `scrypt$${salt}$${hash}`;
+}
+
+// Legacy hashing (SHA-256 + static salt). Retained ONLY to verify accounts that
+// were created before the scrypt migration; never used to create new hashes.
+function legacyHashPassword(password: string): string {
   const salt = process.env.SESSION_SECRET || 'agriconnect-default-salt-value-2026';
-  return crypto
-    .createHash('sha256')
-    .update(password + salt)
-    .digest('hex');
+  return crypto.createHash('sha256').update(password + salt).digest('hex');
+}
+
+// Verify a password against a stored hash, supporting both the new scrypt format
+// and the legacy SHA-256 format. Comparisons are timing-safe. When a legacy hash
+// matches, `needsUpgrade` is true so the caller can transparently re-hash it.
+export function verifyPassword(
+  password: string,
+  stored: string,
+): { valid: boolean; needsUpgrade: boolean } {
+  if (stored.startsWith('scrypt$')) {
+    const parts = stored.split('$');
+    const salt = parts[1];
+    const hashHex = parts[2];
+    if (!salt || !hashHex) return { valid: false, needsUpgrade: false };
+    const derived = crypto.scryptSync(password, salt, SCRYPT_KEYLEN);
+    const expected = Buffer.from(hashHex, 'hex');
+    const valid =
+      expected.length === derived.length && crypto.timingSafeEqual(expected, derived);
+    return { valid, needsUpgrade: false };
+  }
+
+  // Legacy SHA-256 path.
+  const legacy = Buffer.from(legacyHashPassword(password));
+  const storedBuf = Buffer.from(stored);
+  const valid =
+    legacy.length === storedBuf.length && crypto.timingSafeEqual(legacy, storedBuf);
+  return { valid, needsUpgrade: valid };
 }
 
 export async function createSession(userId: string) {
@@ -89,7 +126,7 @@ export async function destroySession() {
   if (sessionId) {
     try {
       await db.session.delete({ where: { id: sessionId } });
-    } catch (error) {
+    } catch {
       // Ignored if session already deleted
     }
     cookieStore.delete(COOKIE_NAME);

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { toggleUserBlockStatus, toggleProductBlockStatus } from '@/lib/actions/adminActions';
+import { toggleUserBlockStatus } from '@/lib/actions/adminActions';
 import { logout } from '@/lib/actions/authActions';
 import Link from 'next/link';
 
