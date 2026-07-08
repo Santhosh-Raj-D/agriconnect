@@ -6,7 +6,10 @@ import { hashPassword, verifyPassword, createSession, destroySession } from '../
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
 
-export async function login(state: any, formData: FormData) {
+// Return shape used by useActionState-driven forms (login/signup).
+type AuthActionState = { success: boolean; error?: string; role?: string } | null;
+
+export async function login(state: AuthActionState, formData: FormData) {
   const email = ((formData.get('email') as string) || '').toLowerCase().trim();
   const password = formData.get('password') as string;
 
@@ -52,7 +55,7 @@ export async function login(state: any, formData: FormData) {
   }
 }
 
-export async function signup(state: any, formData: FormData) {
+export async function signup(state: AuthActionState, formData: FormData) {
   const name = formData.get('name') as string;
   const email = ((formData.get('email') as string) || '').toLowerCase().trim();
   const password = formData.get('password') as string;

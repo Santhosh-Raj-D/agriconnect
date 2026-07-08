@@ -37,9 +37,9 @@ export default async function BuyerDashboard() {
     orderBy: { createdAt: 'desc' },
   });
 
-  const totalSpent = (orders as any[])
-    .filter((o: any) => o.status !== 'CANCELLED')
-    .reduce((sum: number, o: any) => sum + o.totalPrice, 0);
+  const totalSpent = orders
+    .filter((o) => o.status !== 'CANCELLED')
+    .reduce((sum, o) => sum + o.totalPrice, 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -112,7 +112,7 @@ export default async function BuyerDashboard() {
             </div>
           ) : (
             <div className="space-y-6">
-              {orders.map((order: any) => (
+              {orders.map((order) => (
                 <div
                   key={order.id}
                   className="bg-canopy border border-solid border-fern/20 p-4 sm:p-6 rounded-sm space-y-4"
@@ -158,7 +158,7 @@ export default async function BuyerDashboard() {
 
                   {/* Order items */}
                   <div className="divide-y divide-solid divide-fern/10">
-                    {order.items.map((item: any) => (
+                    {order.items.map((item) => (
                       <div
                         key={item.id}
                         className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 first:pt-0 last:pb-0"

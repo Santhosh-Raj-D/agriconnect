@@ -126,7 +126,7 @@ export async function destroySession() {
   if (sessionId) {
     try {
       await db.session.delete({ where: { id: sessionId } });
-    } catch (error) {
+    } catch {
       // Ignored if session already deleted
     }
     cookieStore.delete(COOKIE_NAME);

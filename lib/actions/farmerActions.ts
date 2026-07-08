@@ -4,7 +4,10 @@ import { db } from '../db';
 import { getSessionUser } from '../auth';
 import { revalidatePath } from 'next/cache';
 
-export async function createProduct(state: any, formData: FormData) {
+// Return shape used by useActionState-driven farmer forms.
+type ActionState = { success: boolean; error?: string } | null;
+
+export async function createProduct(state: ActionState, formData: FormData) {
   const user = await getSessionUser();
   if (!user || user.role !== 'FARMER') {
     return { success: false, error: 'Unauthorized.' };
@@ -48,7 +51,7 @@ export async function createProduct(state: any, formData: FormData) {
   }
 }
 
-export async function updateProduct(productId: string, state: any, formData: FormData) {
+export async function updateProduct(productId: string, state: ActionState, formData: FormData) {
   const user = await getSessionUser();
   if (!user || user.role !== 'FARMER') {
     return { success: false, error: 'Unauthorized.' };
@@ -170,7 +173,7 @@ export async function updateOrderStatus(orderId: string, newStatus: 'PENDING' | 
   }
 }
 
-export async function updateFarmProfile(state: any, formData: FormData) {
+export async function updateFarmProfile(state: ActionState, formData: FormData) {
   const user = await getSessionUser();
   if (!user || user.role !== 'FARMER') {
     return { success: false, error: 'Unauthorized.' };
